@@ -1,0 +1,15 @@
+.git
+.github
+docs
+*.md
+
+# 前端产物由镜像内 web_builder 阶段重新构建，宿主机的残留不要带进上下文
+web/node_modules
+web/dist
+static/secure
+
+# 本地运行残留
+.env
+*.db
+*.db-shm
+*.db-wal
