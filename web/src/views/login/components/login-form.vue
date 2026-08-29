@@ -19,7 +19,6 @@
         <a-form-item field="remember">
           <div class="remember">
             <a-checkbox v-model="form.remember">记住密码</a-checkbox>
-            <div class="forgot-password" @click="handleForgotPassword">忘记密码</div>
           </div>
         </a-form-item>
         <a-form-item>
@@ -129,11 +128,6 @@ const onLogin = async () => {
   // 设置字典
   // useSystemStore().setDictData();
 };
-
-// 忘记密码
-const handleForgotPassword = () => {
-  window.open("https://github.com/v03413/BEpusdt", "_blank");
-};
 </script>
 
 <style lang="scss" scoped>
@@ -150,13 +144,7 @@ const handleForgotPassword = () => {
   .remember {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     width: 100%;
-
-    .forgot-password {
-      color: $color-primary;
-      cursor: pointer;
-    }
   }
 }
 </style>

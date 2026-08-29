@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -51,7 +52,7 @@ var defaultConf = map[ConfKey]string{
 	SystemInstallLock:       "0",
 	RateSyncCoingeckoApiUrl: "https://api.coingecko.com",
 	RateSyncHistoryDays:     "30",
-	MqttTopicPrefix:         "bepusdt",
+	MqttTopicPrefix:         "payment",
 	HomeRedirectUrl:         "",
 }
 
@@ -76,12 +77,15 @@ func SetK(k ConfKey, v string) {
 			return err2
 		}
 
-		defer RefreshC()
-
 		return nil
 	}); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, fmt.Sprintf("设置配置项 %s 错误：%s", k, err.Error()))
+
+		return
 	}
+
+	// 必须等事务提交后再刷新，否则读到的还是旧值，缓存要到下次重启才会正确
+	RefreshC()
 }
 
 func GetK(k ConfKey) string {
@@ -144,9 +148,70 @@ func CheckoutUrl(host, id string) string {
 	return fmt.Sprintf("%s/pay/checkout/%s", uri, id)
 }
 
+// adminEntrancePattern 约束后台入口路径的字符集，避免写入无法被精确匹配的路径
+var adminEntrancePattern = regexp.MustCompile(`^/[A-Za-z0-9._~/-]{1,64}$`)
+
+// adminEntrance 是部署时显式指定的后台入口路径，为空表示交由系统随机生成
+var adminEntrance string
+
+// SetAdminEntrance 必须在 Init 之前调用。传空表示不干预，首次安装时随机生成入口；
+// 传入路径后它就是入口的唯一来源，每次启动都会覆盖数据库中的旧值。
+func SetAdminEntrance(path string) error {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		adminEntrance = ""
+
+		return nil
+	}
+
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	if len(path) > 1 {
+		path = strings.TrimRight(path, "/")
+	}
+
+	if !adminEntrancePattern.MatchString(path) {
+
+		return fmt.Errorf("后台入口路径 %s 不合法：需以 / 开头，且只能包含字母、数字和 . _ ~ - / ", path)
+	}
+
+	// 入口靠 NoRoute 兜底匹配，与已注册路由重名会导致入口永远打不开
+	for _, reserved := range []string{"/pay", "/api", "/secure", "/checkout", "/submit.php"} {
+		if path == reserved || strings.HasPrefix(path, reserved+"/") {
+
+			return fmt.Errorf("后台入口路径 %s 与网关内置路由冲突，请更换", path)
+		}
+	}
+
+	adminEntrance = path
+
+	return nil
+}
+
+// AdminEntrance 返回部署时指定的后台入口路径，未指定时为空
+func AdminEntrance() string {
+
+	return adminEntrance
+}
+
+// applyAdminEntrance 把部署时指定的入口路径写回数据库，覆盖历史值
+func applyAdminEntrance() {
+	if adminEntrance == "" || GetK(AdminSecure) == adminEntrance {
+
+		return
+	}
+
+	SetK(AdminSecure, adminEntrance)
+}
+
 func ConfInit() {
 	var hash = utils.StrSha256(utils.Md5String(time.Now().String()))
 	var secure = "/" + hash[:10]
+	if adminEntrance != "" {
+		secure = adminEntrance
+	}
+
 	var token = strings.ToUpper(utils.Md5String(hash[18:28]))
 	var username = hash[10:20]
 	var password = hash[20:30]
@@ -168,7 +233,7 @@ func ConfInit() {
 
 	fmt.Println()
 	fmt.Println("╔═══════════════════════════════════════════════════════════════════════")
-	fmt.Println("║  🎉  欢迎使用 BEpusdt  -  首次运行检测，初始化配置完成")
+	fmt.Println("║  🎉  欢迎使用收款网关  -  首次运行检测，初始化配置完成")
 	fmt.Println("╚═══════════════════════════════════════════════════════════════════════")
 	fmt.Println()
 	fmt.Println("┏━━  🔐  后台登录信息 (请立即保存！)")

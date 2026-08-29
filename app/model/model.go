@@ -74,6 +74,7 @@ func initSqlite(db string) error {
 	}
 
 	FillDefaultConf()
+	applyAdminEntrance()
 	RefreshC()
 
 	return nil
@@ -114,6 +115,7 @@ func initPostgres(dsn string) error {
 	}
 
 	FillDefaultConf()
+	applyAdminEntrance()
 	RefreshC()
 
 	return nil

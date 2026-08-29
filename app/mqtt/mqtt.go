@@ -55,7 +55,7 @@ func Reload() error {
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%s", newConf.host, newConf.port))
 	opts.SetUsername(newConf.user)
 	opts.SetPassword(newConf.pass)
-	opts.SetClientID(fmt.Sprintf("BEpusdt %d", os.Getpid()))
+	opts.SetClientID(fmt.Sprintf("gateway %d", os.Getpid()))
 	opts.SetAutoReconnect(true)
 	opts.SetOrderMatters(false)
 	opts.SetOnConnectHandler(onConnectHandler)

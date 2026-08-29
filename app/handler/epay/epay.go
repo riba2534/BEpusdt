@@ -121,7 +121,7 @@ func (e Epay) verify(data map[string]string) (submit, error) {
 	pid, ok := data["pid"]
 	if !ok || pid != Pid {
 
-		return params, fmt.Errorf("BEpusdt 易支付兼容模式，商户号【PID】必须固定为" + Pid)
+		return params, fmt.Errorf("易支付兼容模式，商户号【PID】必须固定为" + Pid)
 	}
 
 	var requiredFields = []string{"pid", "type", "out_trade_no", "notify_url", "return_url", "name", "money", "sign"}

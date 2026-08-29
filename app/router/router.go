@@ -33,7 +33,7 @@ func Handler() *gin.Engine {
 
 	engine.Use(sessions.Sessions("session", session))
 	engine.Use(gin.LoggerWithWriter(log.GetWriter()), gin.Recovery())
-	engine.Use(sessionAuth(), copyright())
+	engine.Use(sessionAuth())
 	engine.NoRoute(noRoute())
 	engine.GET("/", func(ctx *gin.Context) {
 		if !model.IsInstalled() {
@@ -54,7 +54,8 @@ func Handler() *gin.Engine {
 			return
 		}
 
-		ctx.HTML(200, "index.html", gin.H{"title": conf.Desc, "url": conf.Github})
+		// 网关不对外提供首页，未持有后台会话的访客与访问任意不存在的路径同等对待
+		ctx.Status(http.StatusNotFound)
 	})
 
 	{
@@ -126,12 +127,6 @@ func noRoute() gin.HandlerFunc {
 
 			return
 		}
-	}
-}
-
-func copyright() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		ctx.Writer.Header().Set("Payment-Gateway", "https://github.com/v03413/BEpusdt")
 	}
 }
 

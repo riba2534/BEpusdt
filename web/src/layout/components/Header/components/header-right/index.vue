@@ -34,20 +34,12 @@
     <a-dropdown trigger="hover">
       <div class="my_setting" id="system-my-setting">
         <!-- <a-image width="32" height="32" fit="cover" :src="account.user.avatar || myImage" class="my_image" /> -->
-        <span class="user-nickname">Hi {{ admin_username || "BEpusdt" }}</span>
+        <span class="user-nickname">Hi {{ admin_username || "管理员" }}</span>
         <div class="icon_down">
           <icon-down style="stroke-width: 3" />
         </div>
       </div>
       <template #content>
-        <!-- 项目地址 -->
-        <a-doption @click="onProject">
-          <template #default>
-            <s-svg-icon :name="'github'" :size="18" />
-            <span class="margin-left-text">{{ $t(`system.project-address`) }}</span>
-          </template>
-        </a-doption>
-        <a-divider margin="0" />
         <!-- 退出登录 -->
         <a-doption @click="logOut">
           <template #default>
@@ -126,11 +118,6 @@ const onNightMode = () => {
 //   }
 //   i18n.locale.value = language.value;
 // };
-
-// 项目地址
-const onProject = () => {
-  window.open("https://github.com/v03413/BEpusdt", "_blank");
-};
 
 // 退出登录
 const logOut = () => {

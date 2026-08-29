@@ -1,6 +1,6 @@
 {
-  "pageTitle": "BEpusdt 一款更好用的个人加密货币收款网关",
-  "brandName": "BEpusdt",
+  "pageTitle": "收银台",
+  "brandName": "收银台",
   "helpTitle": "联系客服",
   "feeNotice": "请严格按照数额进行付款",
   "timerLabel": "到期时间",
@@ -12,7 +12,6 @@
   "searchPlaceholder": "搜索",
   "hotBadge": "热门",
   "payBtn": "继续付款",
-  "poweredBy": "Powered by",
   "copyAmountTitle": "复制金额",
   "networkPrefix": "区块网络 · ",
   "receivingAddress": "收款地址",

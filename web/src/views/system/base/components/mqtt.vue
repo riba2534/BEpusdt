@@ -3,10 +3,7 @@
     <a-col :span="24">
       <a-card title="MQTT 发布设置">
         <a-alert type="info" style="margin-bottom: 16px">
-          系统可将扫描到的交易信息发布到 MQTT 服务器，其它系统通过订阅实时获取数据，
-          <a-link href="https://github.com/v03413/BEpusdt/blob/main/docs/api/mqtt.md" target="_blank" :hoverable="false">
-            查看文档
-          </a-link>
+          系统可将扫描到的交易信息发布到 MQTT 服务器，其它系统通过订阅实时获取数据
         </a-alert>
         <a-alert type="warning" style="margin-bottom: 16px">
           <template #icon><icon-exclamation-circle-fill /></template>
@@ -33,9 +30,9 @@
           <a-form-item
             field="mqtt_topic_prefix"
             label="消息路径前缀"
-            extra="消息发布的 Topic 路径前缀，只允许字母、数字、下划线和斜杠，默认为 bepusdt"
+            extra="消息发布的 Topic 路径前缀，只允许字母、数字、下划线和斜杠，默认为 payment"
           >
-            <a-input v-model="form.mqtt_topic_prefix" placeholder="例如：bepusdt" allow-clear />
+            <a-input v-model="form.mqtt_topic_prefix" placeholder="例如：payment" allow-clear />
           </a-form-item>
 
           <a-form-item field="mqtt_publish_qos" label="Publish QoS" extra="消息发布服务质量等级">
@@ -110,7 +107,7 @@ const form = ref({
   mqtt_pass: "",
   mqtt_publish_qos: "0",
   mqtt_networks: "",
-  mqtt_topic_prefix: "bepusdt"
+  mqtt_topic_prefix: "payment"
 });
 
 const networksSelected = computed({
@@ -132,7 +129,7 @@ const onSubmit = async ({ errors }: ArcoDesign.ArcoSubmit) => {
     { key: "mqtt_pass", value: form.value.mqtt_pass },
     { key: "mqtt_publish_qos", value: form.value.mqtt_publish_qos },
     { key: "mqtt_networks", value: form.value.mqtt_networks },
-    { key: "mqtt_topic_prefix", value: form.value.mqtt_topic_prefix || "bepusdt" }
+    { key: "mqtt_topic_prefix", value: form.value.mqtt_topic_prefix || "payment" }
   ]);
 
   Message.success("保存成功");
@@ -148,7 +145,7 @@ watch(
     form.value.mqtt_pass = data.value.mqtt_pass ?? "";
     form.value.mqtt_publish_qos = data.value.mqtt_publish_qos ?? "0";
     form.value.mqtt_networks = data.value.mqtt_networks ?? "";
-    form.value.mqtt_topic_prefix = data.value.mqtt_topic_prefix ?? "bepusdt";
+    form.value.mqtt_topic_prefix = data.value.mqtt_topic_prefix ?? "payment";
   }
 );
 </script>

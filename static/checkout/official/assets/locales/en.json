@@ -1,6 +1,6 @@
 {
-  "pageTitle": "BEpusdt - Better Personal Cryptocurrency Payment Gateway",
-  "brandName": "BEpusdt",
+  "pageTitle": "Checkout",
+  "brandName": "Checkout",
   "helpTitle": "Support",
   "feeNotice": "Please pay the exact amount shown",
   "timerLabel": "Expires in",
@@ -12,7 +12,6 @@
   "searchPlaceholder": "Search",
   "hotBadge": "Popular",
   "payBtn": "Continue Payment",
-  "poweredBy": "Powered by",
   "copyAmountTitle": "Copy amount",
   "networkPrefix": "Network · ",
   "receivingAddress": "Receiving Address",

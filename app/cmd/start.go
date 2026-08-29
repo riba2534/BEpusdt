@@ -27,10 +27,14 @@ import (
 var Start = &cli.Command{
 	Name:  "start",
 	Usage: "启动收款网关",
-	Flags: []cli.Flag{SQLiteFlag, PostgresDSNFlag, LogFlag, ListenFlag},
+	Flags: []cli.Flag{SQLiteFlag, PostgresDSNFlag, LogFlag, ListenFlag, EntranceFlag},
 	Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {
 		postgres := c.String("postgres")
 		sqlite := c.String("sqlite")
+		if err := model.SetAdminEntrance(c.String("entrance")); err != nil {
+			return ctx, err
+		}
+
 		if err := model.Init(sqlite, postgres); err != nil {
 			return ctx, fmt.Errorf("数据库初始化失败 %w", err)
 		}
@@ -83,7 +87,7 @@ func start(ctx context.Context, cmd *cli.Command) error {
 	notifier.Welcome()
 
 	fmt.Println(fmt.Sprintf("日志保存路径：%s", log.GetPath()))
-	fmt.Println(fmt.Sprintf("BEpusdt 启动成功(%s)，当前版本：%s", listen, app.Version))
+	fmt.Println(fmt.Sprintf("收款网关启动成功(%s)，当前版本：%s", listen, app.Version))
 
 	// 等待中断信号
 	var signals = make(chan os.Signal, 1)

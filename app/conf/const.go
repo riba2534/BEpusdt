@@ -1,9 +1,6 @@
 package conf
 
-const (
-	Desc   = "一款更好用的个人加密货币收款网关"
-	Github = "https://github.com/v03413/BEpusdt"
-)
+const Desc = "加密货币收款网关"
 
 const Debug = false
 

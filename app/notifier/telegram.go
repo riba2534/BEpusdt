@@ -201,23 +201,12 @@ func (t *Telegram) TronResourceChange(res model.TronResource) {
 
 func (t *Telegram) Welcome() {
 	text := `
-👋 欢迎使用 BEpusdt，` + conf.Desc + `，如果您看到此消息，说明系统已启动成功！
+👋 ` + conf.Desc + `，如果您看到此消息，说明系统已启动成功！
 
 📌当前版本：` + app.Version + `
-🎉开源地址：` + conf.Github + `
 ---
 `
-	t.sendMessage(&bot.SendMessageParams{
-		Text: text,
-		ReplyMarkup: models.InlineKeyboardMarkup{
-			InlineKeyboard: [][]models.InlineKeyboardButton{
-				{
-					{Text: "📢 关注频道", URL: "https://t.me/BEpusdtChannel"},
-					{Text: "💬 社区交流", URL: "https://t.me/BEpusdtChat"},
-				},
-			},
-		},
-	})
+	t.sendMessage(&bot.SendMessageParams{Text: text})
 }
 
 func (t *Telegram) Test() error {

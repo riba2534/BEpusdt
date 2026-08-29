@@ -319,25 +319,6 @@ button {
     padding: 24px;
 }
 
-.checkout-footer {
-    align-self: end;
-    justify-self: center;
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 650;
-    line-height: 1.4;
-    text-align: center;
-}
-
-.checkout-footer a {
-    color: var(--green);
-    text-decoration: none;
-}
-
-.checkout-footer a:hover {
-    text-decoration: underline;
-}
-
 .checkout-head {
     align-items: flex-start;
     justify-content: space-between;

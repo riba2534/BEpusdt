@@ -15,10 +15,14 @@ import (
 var Reset = &cli.Command{
 	Name:  "reset",
 	Usage: "忘记密码时，此命令可重置账号密码登录入口",
-	Flags: []cli.Flag{SQLiteFlag, PostgresDSNFlag},
+	Flags: []cli.Flag{SQLiteFlag, PostgresDSNFlag, EntranceFlag},
 	Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {
 		sqlite := c.String("sqlite")
 		postgres := c.String("postgres")
+		if err := model.SetAdminEntrance(c.String("entrance")); err != nil {
+			return ctx, err
+		}
+
 		if err := model.Init(sqlite, postgres); err != nil {
 			return ctx, fmt.Errorf("数据库初始化失败 %w", err)
 		}
@@ -35,7 +39,10 @@ var Reset = &cli.Command{
 
 		username := hash[8:16]
 		password := hash[0:8]
-		entrance := fmt.Sprintf("/%s", hash[10:20])
+		entrance := model.AdminEntrance()
+		if entrance == "" {
+			entrance = fmt.Sprintf("/%s", hash[10:20])
+		}
 		encrypt, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 		model.SetK(model.AdminSecure, entrance)

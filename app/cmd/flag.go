@@ -29,3 +29,10 @@ var ListenFlag = &cli.StringFlag{
 	Usage:   "监听地址，格式为 ip:port，例如 :8080",
 	Sources: cli.EnvVars("LISTEN"),
 }
+
+var EntranceFlag = &cli.StringFlag{
+	Name:    "entrance",
+	Value:   "",
+	Usage:   "后台管理入口路径，例如 /my-panel；留空则首次安装时随机生成",
+	Sources: cli.EnvVars("ADMIN_ENTRANCE"),
+}

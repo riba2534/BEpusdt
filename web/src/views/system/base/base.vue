@@ -5,11 +5,8 @@
         <a-row align="center">
           <a-col :span="isMobile ? 24 : 2">
             <div :class="{ center: isMobile }">
-              <a-avatar :size="100" trigger-type="mask">
-                <img alt="avatar" src="https://avatars.githubusercontent.com/u/49953737?v=4" />
-                <template #trigger-icon>
-                  <IconEdit />
-                </template>
+              <a-avatar :size="100">
+                <icon-user />
               </a-avatar>
             </div>
           </a-col>

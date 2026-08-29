@@ -53,7 +53,6 @@ func staticInit(e *gin.Engine) {
 	}
 
 	e.SetHTMLTemplate(tmpl)
-	e.StaticFS("/payment/assets", http.FS(subFS(static.Payment, "payment/assets")))
 	e.StaticFS("/secure/assets", http.FS(subFS(static.Secure, "secure/assets")))
 }
 

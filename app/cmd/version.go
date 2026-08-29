@@ -12,7 +12,7 @@ var Version = &cli.Command{
 	Name:  "version",
 	Usage: "显示版本信息",
 	Action: func(ctx context.Context, cmd *cli.Command) error {
-		fmt.Println("BEpusdt 版本：" + app.Version)
+		fmt.Println("收款网关版本：" + app.Version)
 
 		return nil
 	},

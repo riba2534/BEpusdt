@@ -19,8 +19,8 @@
 
     var translations = {
         zh: {
-            'page.title': 'BEpusdt - 收银台',
-            'brand.title': 'BEpusdt 收银台',
+            'page.title': '收银台',
+            'brand.title': '收银台',
             'brand.subtitle': '商户支付会话',
             'lang.group': '语言',
             'theme.group': '主题',
@@ -80,8 +80,8 @@
             'overlay.successBody': '订单已确认到账，即将返回商户页面。'
         },
         'zh-Hant': {
-            'page.title': 'BEpusdt - 收銀台',
-            'brand.title': 'BEpusdt 收銀台',
+            'page.title': '收銀台',
+            'brand.title': '收銀台',
             'brand.subtitle': '商戶支付會話',
             'lang.group': '語言',
             'theme.group': '主題',
@@ -138,8 +138,8 @@
             'overlay.successBody': '訂單已確認到帳，即將返回商戶頁面。'
         },
         en: {
-            'page.title': 'BEpusdt - Checkout',
-            'brand.title': 'BEpusdt Checkout',
+            'page.title': 'Checkout',
+            'brand.title': 'Checkout',
             'brand.subtitle': 'Merchant payment session',
             'lang.group': 'Language',
             'theme.group': 'Theme',
@@ -196,8 +196,8 @@
             'overlay.successBody': 'The order has been confirmed and will return to the merchant page shortly.'
         },
         ru: {
-            'page.title': 'BEpusdt - Касса',
-            'brand.title': 'BEpusdt Касса',
+            'page.title': 'Касса',
+            'brand.title': 'Касса',
             'brand.subtitle': 'Платежная сессия магазина',
             'lang.group': 'Язык',
             'theme.group': 'Тема',
@@ -254,8 +254,8 @@
             'overlay.successBody': 'Заказ подтвержден. Сейчас вы будете возвращены на страницу магазина.'
         },
         vi: {
-            'page.title': 'BEpusdt - Thanh toán',
-            'brand.title': 'BEpusdt Thanh toán',
+            'page.title': 'Thanh toán',
+            'brand.title': 'Thanh toán',
             'brand.subtitle': 'Phiên thanh toán của cửa hàng',
             'lang.group': 'Ngôn ngữ',
             'theme.group': 'Giao diện',
@@ -312,8 +312,8 @@
             'overlay.successBody': 'Đơn hàng đã được xác nhận. Bạn sẽ được đưa về trang cửa hàng ngay sau đây.'
         },
         tr: {
-            'page.title': 'BEpusdt - Ödeme',
-            'brand.title': 'BEpusdt Ödeme',
+            'page.title': 'Ödeme',
+            'brand.title': 'Ödeme',
             'brand.subtitle': 'Mağaza ödeme oturumu',
             'lang.group': 'Dil',
             'theme.group': 'Tema',
@@ -370,8 +370,8 @@
             'overlay.successBody': 'Sipariş onaylandı. Kısa süre içinde mağaza sayfasına yönlendirileceksiniz.'
         },
         ja: {
-            'page.title': 'BEpusdt - お支払い',
-            'brand.title': 'BEpusdt お支払い',
+            'page.title': 'お支払い',
+            'brand.title': 'お支払い',
             'brand.subtitle': '加盟店のお支払いセッション',
             'lang.group': '言語',
             'theme.group': 'テーマ',
@@ -428,8 +428,8 @@
             'overlay.successBody': '注文の入金確認が完了しました。まもなく加盟店ページへ戻ります。'
         },
         ko: {
-            'page.title': 'BEpusdt - 결제',
-            'brand.title': 'BEpusdt 결제',
+            'page.title': '결제',
+            'brand.title': '결제',
             'brand.subtitle': '가맹점 결제 세션',
             'lang.group': '언어',
             'theme.group': '테마',
@@ -548,7 +548,7 @@
         var queryLang = params.get('lang');
         if (queryLang) return normalizeLanguage(queryLang);
 
-        var storedLang = localStorage.getItem('bepusdt-cashier-lang');
+        var storedLang = localStorage.getItem('cashier-lang');
         if (storedLang) return normalizeLanguage(storedLang);
 
         return normalizeLanguage(navigator.language);
@@ -608,7 +608,7 @@
 
     function refreshLocalizedState() {
         translateStatic();
-        applyTheme(document.documentElement.dataset.theme || localStorage.getItem('bepusdt-cashier-theme') || 'light');
+        applyTheme(document.documentElement.dataset.theme || localStorage.getItem('cashier-theme') || 'light');
         setStatusKey(currentStatusKey);
 
         if (selectedNetworkId) renderNetworkOptions(selectedNetworkId);
@@ -619,7 +619,7 @@
 
     function setLanguage(lang) {
         currentLang = normalizeLanguage(lang);
-        localStorage.setItem('bepusdt-cashier-lang', currentLang);
+        localStorage.setItem('cashier-lang', currentLang);
         refreshLocalizedState();
     }
 
@@ -892,12 +892,12 @@
     }
 
     function initTheme() {
-        applyTheme(localStorage.getItem('bepusdt-cashier-theme') || 'light');
+        applyTheme(localStorage.getItem('cashier-theme') || 'light');
         var button = $('#themeToggle');
         if (button) {
             button.addEventListener('click', function () {
                 var theme = button.dataset.nextTheme || 'dark';
-                localStorage.setItem('bepusdt-cashier-theme', theme);
+                localStorage.setItem('cashier-theme', theme);
                 applyTheme(theme);
             });
         }

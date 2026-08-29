@@ -292,27 +292,6 @@ func (Auth) Menu(ctx *gin.Context) {
 			},
 			Children: nil,
 		},
-		{
-			Id:        "07",
-			Path:      "/github-api-doc",
-			Name:      "github-api-doc",
-			Component: "about/doc",
-			Meta: meta{
-				Title:     "github-api-doc",
-				Hide:      false,
-				Disable:   false,
-				KeepAlive: true,
-				Affix:     false,
-				Link:      "",
-				Iframe:    false,
-				IsFull:    false,
-				Roles:     []string{"admin"},
-				SvgIcon:   "about",
-				Icon:      "",
-				Sort:      1,
-				Type:      2,
-			},
-		},
 	}
 
 	base.Ok(ctx, data)

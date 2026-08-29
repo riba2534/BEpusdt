@@ -399,39 +399,7 @@ body {
 .pay-btn:active:not(:disabled) { transform: translateY(0); }
 .pay-btn:disabled { background: #d1d5db; cursor: not-allowed; transform: none; box-shadow: none; }
 
-.card-footer {
-    padding: 12px 24px 16px;
-    text-align: center;
-    border-top: 1px solid var(--color-border);
-    background: #f0f2f5;
-    border-bottom-left-radius: var(--radius-card);
-    border-bottom-right-radius: var(--radius-card);
-}
-.footer-powered {
-    font-size: 12px;
-    color: var(--color-text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-.footer-powered a {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color .15s;
-}
-.footer-powered a:hover { color: #5a6fd6; }
-.footer-github {
-    display: flex;
-    align-items: center;
-    color: var(--color-text-muted) !important;
-    font-weight: normal !important;
-    transition: color .15s;
-}
-.footer-github:hover { color: var(--color-text-primary) !important; }
-
-.qr-stage { padding: 20px 24px 0; }
+.qr-stage { padding: 20px 24px 4px; }
 .qr-wrapper {
     position: relative;
     display: flex;
@@ -663,28 +631,6 @@ body {
     transition: background .2s, transform .15s;
 }
 .return-btn:hover { background: #1a1a1a; transform: translateY(-1px); }
-
-.modal-footer {
-    padding: 12px 20px;
-    border-top: 1px solid #f0f0f0;
-    background: #f0f2f5;
-    font-size: 12px;
-    color: #b0b8c8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-.modal-footer a { color: #667eea; text-decoration: none; font-weight: 600; transition: color .15s; }
-.modal-footer a:hover { color: #5a6fd6; }
-.modal-footer-github {
-    display: flex;
-    align-items: center;
-    color: var(--color-text-muted) !important;
-    font-weight: normal !important;
-    transition: color .15s;
-}
-.modal-footer-github:hover { color: var(--color-text-primary) !important; }
 
 .confirming-spinner {
     width: 56px;
