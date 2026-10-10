@@ -416,7 +416,7 @@ func amountMatch(amount decimal.Decimal, target, tradeType string) bool {
 
 		_, precision := model.GetAtomicity(model.TradeType(tradeType)) // 标准精度
 		precision2 := abs(t.Exponent())                                // 实际精度
-		if precision2 != precision {
+		if precision2 > precision {
 			precision = precision2
 		}
 

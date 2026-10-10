@@ -130,6 +130,11 @@ func GetC(k ConfKey) string {
 	return value.(string)
 }
 
+// SetC 设置缓存配置，常用于测试或运行时快速更新
+func SetC(k ConfKey, v string) {
+	confCache.Store(k, v)
+}
+
 func RefreshC() {
 	var rows = make([]Conf, 0)
 	Db.Find(&rows)
