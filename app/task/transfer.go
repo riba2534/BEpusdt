@@ -103,21 +103,26 @@ func orderTransferHandle(ctx context.Context) {
 				}
 
 				var matched bool
-				for i, o := range orderList {
-					if !orderTransferMatch(o, t) {
-						continue
-					}
+				for _, matchFn := range []func(model.Order, transfer) bool{orderTransferMatch, orderTransferMatchFeeTolerance} {
+					for i, o := range orderList {
+						if !matchFn(o, t) {
+							continue
+						}
 
-					// 订单匹配 进入确认流程
-					if err := o.MarkConfirming(t.BlockNum, t.FromAddress, t.TxHash, t.Timestamp, t.Amount); err != nil {
-						log.Task.Warn("mark order confirming failed:", err)
-						continue
-					}
+						// 订单匹配 进入确认流程
+						if err := o.MarkConfirming(t.BlockNum, t.FromAddress, t.TxHash, t.Timestamp, t.Amount); err != nil {
+							log.Task.Warn("mark order confirming failed:", err)
+							continue
+						}
 
-					// 从内存 map 中移除已匹配订单，防止同批次其他 transfer 重复匹配
-					orders[key] = append(orderList[:i], orderList[i+1:]...)
-					matched = true
-					break
+						// 从内存 map 中移除已匹配订单，防止同批次其他 transfer 重复匹配
+						orders[key] = append(orderList[:i], orderList[i+1:]...)
+						matched = true
+						break
+					}
+					if matched {
+						break
+					}
 				}
 
 				if !matched {
@@ -150,6 +155,34 @@ func orderTransferMatch(o model.Order, t transfer) bool {
 	}
 
 	return true
+}
+
+// orderTransferMatchFeeTolerance 提币手续费容差匹配（仅在精确匹配未命中任何候选订单时作为兜底）
+// 兼容买家在交易所提币时按标价填写提币数、被扣除 1 个最小原子精度手续费（如提 6 实到 5.99 USDT）的场景。
+func orderTransferMatchFeeTolerance(o model.Order, t transfer) bool {
+	if o.TradeType != t.TradeType || orderMatchAddress(o) != t.RecvAddress {
+		return false
+	}
+	if o.AddressLocked || !amountMatchFeeTolerance(t.Amount, o.Amount, string(o.TradeType)) {
+		return false
+	}
+	if !o.CreatedAt.Before(t.Timestamp) || !o.ExpiredAt.After(t.Timestamp) {
+		return false
+	}
+
+	return true
+}
+
+// matchOrderIndex 在候选订单列表中按「精确匹配优先 → 提币手续费容差兜底」两阶段查找匹配订单下标
+func matchOrderIndex(orderList []model.Order, t transfer) (int, bool) {
+	for _, matchFn := range []func(model.Order, transfer) bool{orderTransferMatch, orderTransferMatchFeeTolerance} {
+		for i, o := range orderList {
+			if matchFn(o, t) {
+				return i, true
+			}
+		}
+	}
+	return -1, false
 }
 
 func orderMatchAddress(o model.Order) string {
@@ -427,6 +460,28 @@ func amountMatch(amount decimal.Decimal, target, tradeType string) bool {
 	}
 
 	return false
+}
+
+func amountMatchFeeTolerance(amount decimal.Decimal, target, tradeType string) bool {
+	t, err := decimal.NewFromString(target)
+	if err != nil {
+		return false
+	}
+
+	atom, precision := model.GetAtomicity(model.TradeType(tradeType))
+	if atom.LessThanOrEqual(decimal.Zero) {
+		return false
+	}
+	precision2 := abs(t.Exponent())
+	if precision2 > precision {
+		precision = precision2
+	}
+
+	a := amount.Round(precision)
+	t = t.Round(precision)
+	diff := t.Sub(a)
+
+	return diff.GreaterThan(decimal.Zero) && diff.LessThanOrEqual(atom)
 }
 
 func abs(n int32) int32 {
