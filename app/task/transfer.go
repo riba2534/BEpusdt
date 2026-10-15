@@ -102,30 +102,18 @@ func orderTransferHandle(ctx context.Context) {
 					continue
 				}
 
-				var matched bool
-				for _, matchFn := range []func(model.Order, transfer) bool{orderTransferMatch, orderTransferMatchFeeTolerance} {
-					for i, o := range orderList {
-						if !matchFn(o, t) {
-							continue
-						}
-
-						// 订单匹配 进入确认流程
-						if err := o.MarkConfirming(t.BlockNum, t.FromAddress, t.TxHash, t.Timestamp, t.Amount); err != nil {
-							log.Task.Warn("mark order confirming failed:", err)
-							continue
-						}
-
-						// 从内存 map 中移除已匹配订单，防止同批次其他 transfer 重复匹配
-						orders[key] = append(orderList[:i], orderList[i+1:]...)
-						matched = true
-						break
+				idx, matched := matchOrderIndex(orderList, t)
+				if matched {
+					o := orderList[idx]
+					// 订单匹配 进入确认流程
+					if err := o.MarkConfirming(t.BlockNum, t.FromAddress, t.TxHash, t.Timestamp, t.Amount); err != nil {
+						log.Task.Warn("mark order confirming failed:", err)
+						continue
 					}
-					if matched {
-						break
-					}
-				}
 
-				if !matched {
+					// 从内存 map 中移除已匹配订单，防止同批次其他 transfer 重复匹配
+					orders[key] = append(orderList[:idx], orderList[idx+1:]...)
+				} else {
 					other = append(other, t)
 				}
 			}
@@ -157,8 +145,25 @@ func orderTransferMatch(o model.Order, t transfer) bool {
 	return true
 }
 
-// orderTransferMatchFeeTolerance 提币手续费容差匹配（仅在精确匹配未命中任何候选订单时作为兜底）
-// 兼容买家在交易所提币时按标价填写提币数、被扣除 1 个最小原子精度手续费（如提 6 实到 5.99 USDT）的场景。
+// orderTransferMatchDustTolerance 微量粉尘/多位小数容差匹配（abs(amount - target) < atom / 2）
+// 兼容 web3 钱包或交易所转账带有微量粉尘（如 6.000001、6.010001 等），
+// 因为并发订单分配的金额间隔至少为 atom (0.01)，在半个原子精度 (0.005) 范围内数学唯一无歧义。
+func orderTransferMatchDustTolerance(o model.Order, t transfer) bool {
+	if o.TradeType != t.TradeType || orderMatchAddress(o) != t.RecvAddress {
+		return false
+	}
+	if o.AddressLocked || !amountMatchDustTolerance(t.Amount, o.Amount, string(o.TradeType)) {
+		return false
+	}
+	if !o.CreatedAt.Before(t.Timestamp) || !o.ExpiredAt.After(t.Timestamp) {
+		return false
+	}
+
+	return true
+}
+
+// orderTransferMatchFeeTolerance 提币手续费容差匹配（abs(amount - (target - atom)) < atom / 2）
+// 兼容买家在交易所按标价提币被内扣 1 个最小原子精度手续费（如提 6 实到 5.99 USDT）。
 func orderTransferMatchFeeTolerance(o model.Order, t transfer) bool {
 	if o.TradeType != t.TradeType || orderMatchAddress(o) != t.RecvAddress {
 		return false
@@ -173,9 +178,14 @@ func orderTransferMatchFeeTolerance(o model.Order, t transfer) bool {
 	return true
 }
 
-// matchOrderIndex 在候选订单列表中按「精确匹配优先 → 提币手续费容差兜底」两阶段查找匹配订单下标
+// matchOrderIndex 在候选订单列表中按「阶段1 精确匹配优先 → 阶段2 微量粉尘容差 → 阶段3 提币手续费容差兜底」查找匹配订单下标
 func matchOrderIndex(orderList []model.Order, t transfer) (int, bool) {
-	for _, matchFn := range []func(model.Order, transfer) bool{orderTransferMatch, orderTransferMatchFeeTolerance} {
+	matchers := []func(model.Order, transfer) bool{
+		orderTransferMatch,
+		orderTransferMatchDustTolerance,
+		orderTransferMatchFeeTolerance,
+	}
+	for _, matchFn := range matchers {
 		for i, o := range orderList {
 			if matchFn(o, t) {
 				return i, true
@@ -462,26 +472,42 @@ func amountMatch(amount decimal.Decimal, target, tradeType string) bool {
 	return false
 }
 
+func amountMatchDustTolerance(amount decimal.Decimal, target, tradeType string) bool {
+	t, err := decimal.NewFromString(target)
+	if err != nil {
+		return false
+	}
+
+	atom, _ := model.GetAtomicity(model.TradeType(tradeType))
+	if atom.LessThanOrEqual(decimal.Zero) {
+		return false
+	}
+
+	halfAtom := atom.Div(decimal.NewFromInt(2))
+	return amount.Sub(t).Abs().LessThan(halfAtom)
+}
+
 func amountMatchFeeTolerance(amount decimal.Decimal, target, tradeType string) bool {
 	t, err := decimal.NewFromString(target)
 	if err != nil {
 		return false
 	}
 
-	atom, precision := model.GetAtomicity(model.TradeType(tradeType))
+	// 提币手续费容差仅适用于未加零头的整倍数标价订单（如 6 USDT），
+	// 带随机零头分配的并发订单（如 6.01、6.02）严禁向下容差，防止与基准整单冲突。
+	if !t.Truncate(0).Equal(t) {
+		return false
+	}
+
+	atom, _ := model.GetAtomicity(model.TradeType(tradeType))
 	if atom.LessThanOrEqual(decimal.Zero) {
 		return false
 	}
-	precision2 := abs(t.Exponent())
-	if precision2 > precision {
-		precision = precision2
-	}
 
-	a := amount.Round(precision)
-	t = t.Round(precision)
-	diff := t.Sub(a)
+	halfAtom := atom.Div(decimal.NewFromInt(2))
+	expected := t.Sub(atom)
 
-	return diff.GreaterThan(decimal.Zero) && diff.LessThanOrEqual(atom)
+	return amount.Sub(expected).Abs().LessThan(halfAtom)
 }
 
 func abs(n int32) int32 {

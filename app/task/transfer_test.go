@@ -73,6 +73,41 @@ func TestAmountMatch(t *testing.T) {
 	}
 }
 
+func TestAmountMatchDustTolerance(t *testing.T) {
+	initTestDB(t)
+
+	tests := []struct {
+		name      string
+		amount    string
+		target    string
+		tradeType string
+		want      bool
+	}{
+		{"6.000001 matches 6 (micro dust fraction)", "6.000001", "6", "usdt.bep20", true},
+		{"6.00005 matches 6 (sub cent dust)", "6.00005", "6", "usdt.bep20", true},
+		{"6.004 matches 6 (within half atom 0.005)", "6.004", "6", "usdt.bep20", true},
+		{"6.005 does not match 6 (exceeds half atom)", "6.005", "6", "usdt.bep20", false},
+		{"6.01 does not match 6", "6.01", "6", "usdt.bep20", false},
+		{"6.000001 does not match 6.01", "6.000001", "6.01", "usdt.bep20", false},
+		{"6.010001 matches 6.01", "6.010001", "6.01", "usdt.bep20", true},
+		{"5.99 does not match 6 in dust pass", "5.99", "6", "usdt.bep20", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			amt, err := decimal.NewFromString(tt.amount)
+			if err != nil {
+				t.Fatalf("invalid amount: %v", err)
+			}
+			got := amountMatchDustTolerance(amt, tt.target, tt.tradeType)
+			if got != tt.want {
+				t.Errorf("amountMatchDustTolerance(%s, %s, %s) = %v, want %v",
+					tt.amount, tt.target, tt.tradeType, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestAmountMatchFeeTolerance(t *testing.T) {
 	initTestDB(t)
 
@@ -87,6 +122,7 @@ func TestAmountMatchFeeTolerance(t *testing.T) {
 		{"5.98 does not match 6 (exceeds 0.01 atom tolerance)", "5.98", "6", "usdt.bep20", false},
 		{"6.00 does not match 6 in fee-tolerance pass (handled by exact pass)", "6.00", "6", "usdt.bep20", false},
 		{"6.01 never matches 6", "6.01", "6", "usdt.bep20", false},
+		{"6.000001 does not match 6.01 in fee pass", "6.000001", "6.01", "usdt.bep20", false},
 		{"5.99 does not match 6.01", "5.99", "6.01", "usdt.bep20", false},
 	}
 
@@ -155,7 +191,12 @@ func TestMatchOrderIndexTwoPassPriority(t *testing.T) {
 		t.Fatalf("6.01 transfer got idx=%d ok=%v, want idx=1 ok=true", idx, ok)
 	}
 
-	// 3. Even if ORDER_6_01 is placed before ORDER_6_00, a 6.00 transfer MUST match ORDER_6_00 via Pass 1 (exact match)
+	// 3. 6.000001 USDT (with micro dust) -> matches ORDER_6_00 (idx 0), never matches ORDER_6_01
+	if idx, ok := matchOrderIndex(orders, mkTransfer("6.000001")); !ok || idx != 0 {
+		t.Fatalf("6.000001 transfer got idx=%d ok=%v, want idx=0 ok=true", idx, ok)
+	}
+
+	// 4. Even if ORDER_6_01 is placed before ORDER_6_00, a 6.00 transfer MUST match ORDER_6_00 via Pass 1 (exact match)
 	reversed := []model.Order{orders[1], orders[0]}
 	if idx, ok := matchOrderIndex(reversed, mkTransfer("6")); !ok || reversed[idx].OrderId != "ORDER_6_00" {
 		t.Fatalf("6.00 transfer on reversed list matched idx=%d ok=%v, want ORDER_6_00", idx, ok)
